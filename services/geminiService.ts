@@ -1,5 +1,4 @@
-
-
+/// <reference types="vite/client" />
 
 import { GoogleGenAI, Modality, GenerateContentResponse } from "@google/genai";
 
@@ -7,12 +6,16 @@ export const summarizeArticle = async (articleContent: string): Promise<string> 
   // First, strip HTML tags from the content to send clean text to the API
   const cleanText = articleContent.replace(/<[^>]*>?/gm, '');
 
-  if (!process.env.API_KEY) {
-    return "API key is not configured. Please set the API_KEY environment variable.";
+  // FIX: Use import.meta.env for environment variables in Vite projects.
+  const apiKey = import.meta.env.VITE_API_KEY;
+  if (!apiKey) {
+    // FIX: Updated error message to reflect the correct environment variable.
+    return "API key is not configured. Please set the VITE_API_KEY environment variable.";
   }
 
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    // FIX: Pass the API key from the environment variable.
+    const ai = new GoogleGenAI({ apiKey });
     const response: GenerateContentResponse = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: `Summarize the following article in three concise sentences:\n\n---\n${cleanText}\n---`,
@@ -28,13 +31,17 @@ export const generateArticleAudio = async (articleContent: string): Promise<stri
   // First, strip HTML tags from the content.
   const cleanText = articleContent.replace(/<[^>]*>?/gm, '');
 
-  if (!process.env.API_KEY) {
-    console.error("API key is not configured.");
+  // FIX: Use import.meta.env for environment variables in Vite projects.
+  const apiKey = import.meta.env.VITE_API_KEY;
+  if (!apiKey) {
+    // FIX: Updated error message to reflect the correct environment variable.
+    console.error("API key is not configured. Please set the VITE_API_KEY environment variable.");
     return null;
   }
 
   try {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    // FIX: Pass the API key from the environment variable.
+    const ai = new GoogleGenAI({ apiKey });
     const response: GenerateContentResponse = await ai.models.generateContent({
         model: "gemini-2.5-flash-preview-tts",
         contents: [{ parts: [{ text: cleanText }] }],
