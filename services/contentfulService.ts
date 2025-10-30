@@ -1,4 +1,3 @@
-
 import { createClient, type Entry, type EntryCollection, type ContentType } from 'contentful';
 import { documentToHtmlString } from '@contentful/rich-text-html-renderer';
 import type { Article, Bio } from '../types';
@@ -131,16 +130,26 @@ const parseContentfulEntry = (
 export const fetchArticles = async (): Promise<Article[]> => {
   const { spaceId, accessToken, contentTypeId } = CONTENTFUL_CONFIG;
 
-  if (!spaceId || !accessToken) {
-    throw new Error(
-      'Contentful credentials are not set. Please add `CONTENTFUL_SPACE_ID` and `CONTENTFUL_ACCESS_TOKEN` to your Netlify environment variables.'
+  if (!spaceId || !accessToken || !contentTypeId) {
+    console.warn(
+      "Contentful credentials not found or incomplete. Falling back to local 'articles.json'. To connect to Contentful, set CONTENTFUL_SPACE_ID, CONTENTFUL_ACCESS_TOKEN, and CONTENTFUL_CONTENT_TYPE_ID in your environment variables."
     );
-  }
-
-  if (!contentTypeId) {
-    throw new Error(
-        'Contentful Content Type ID is not set. Please add `CONTENTFUL_CONTENT_TYPE_ID` to your Netlify environment variables.'
-    );
+    try {
+      const response = await fetch('/articles.json');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const articles: any[] = await response.json();
+      return articles.map(article => ({
+        ...article,
+        id: String(article.id), // Ensure ID is a string as per the Article type
+      }));
+    } catch (error) {
+      console.error('Could not fetch local articles.json:', error);
+      throw new Error(
+        'Contentful credentials are not set, and the local fallback (articles.json) could not be loaded.'
+      );
+    }
   }
 
   const client = createClient({
@@ -199,14 +208,15 @@ export const fetchArticles = async (): Promise<Article[]> => {
   }
 };
 
+const FALLBACK_BIO_DESCRIPTION = `<p>Vikas Verma is a visionary leader dedicated to unlocking the full potential of individuals and organizations. With over 15 years of experience in strategic leadership and organizational development, he has a proven track record of building high-performing teams and fostering cultures of innovation and collaboration.</p><p class="mt-4">His work focuses on the intersection of people systems, culture, and strategy, believing that an organization's greatest asset is its collective human potential. This site is a collection of his insights and learnings on the journey to create workplaces where people can thrive and do their best work.</p>`;
+
 export const fetchBioDescription = async (): Promise<string> => {
   const { spaceId, accessToken } = CONTENTFUL_CONFIG;
   const bioContentTypeId = 'aboutMe';
 
   if (!spaceId || !accessToken) {
-    throw new Error(
-      'Contentful credentials are not set. Please add `CONTENTFUL_SPACE_ID` and `CONTENTFUL_ACCESS_TOKEN` to your Netlify environment variables.'
-    );
+    console.warn("Contentful credentials not found. Falling back to a local bio description.");
+    return FALLBACK_BIO_DESCRIPTION;
   }
   
   const client = createClient({

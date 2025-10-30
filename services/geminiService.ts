@@ -1,7 +1,7 @@
 
 
 
-import { GoogleGenAI, Modality, GenerateContentResponse, Chat } from "@google/genai";
+import { GoogleGenAI, Modality, GenerateContentResponse } from "@google/genai";
 
 export const summarizeArticle = async (articleContent: string): Promise<string> => {
   // First, strip HTML tags from the content to send clean text to the API
@@ -58,37 +58,4 @@ export const generateArticleAudio = async (articleContent: string): Promise<stri
     console.error("Error generating article audio:", error);
     return null;
   }
-};
-
-// FIX: Add missing getChatbotResponse function to handle chat interactions.
-export const getChatbotResponse = async (
-  chatSession: Chat | null,
-  message: string
-): Promise<{ chat: Chat; response: string }> => {
-  if (!process.env.API_KEY) {
-    throw new Error("API key is not configured. Please set the API_KEY environment variable.");
-  }
-
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
-  let activeChat = chatSession;
-
-  if (!activeChat) {
-    activeChat = ai.chats.create({
-      model: 'gemini-2.5-flash',
-      config: {
-        systemInstruction: 'You are an expert assistant specializing in leadership, organizational culture, and business strategy. Provide insightful and helpful answers on these topics.',
-      },
-    });
-  }
-
-  const result = await activeChat.sendMessage({ message });
-  if (!result.text) {
-      throw new Error("Received an empty response from the AI.");
-  }
-  
-  return {
-    chat: activeChat,
-    response: result.text,
-  };
 };
