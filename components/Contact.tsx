@@ -11,7 +11,7 @@ export const Contact: React.FC = () => {
         Have a question, an idea for collaboration, or just want to connect? I'd love to hear from you.
       </p>
       <a
-        href="mailto:vikas.verma.people@example.com"
+        href="mailto:verma.vikas45@gmail.com"
         className="inline-block bg-teal-500 text-white font-semibold px-6 py-3 rounded-lg hover:bg-teal-600 transition-colors duration-300"
       >
         Send an Email
